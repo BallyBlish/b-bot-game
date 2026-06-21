@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 盲盒遊戲機</title>
+    <style>
+        body.loading-mode {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .card {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        h1 { color: #5865F2; }
+    </style>
+</head>
+<body class="loading-mode">
+
+    <div id="init-screen" class="card">
+        <h1 id="status-title">🎲 AI 盲盒遊戲機已就緒</h1>
+        <p id="status-desc">請在 Discord 輸入 <b>!遊戲</b>，這裡會立刻變成隨機小遊戲！</p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCNk1vE7vubqoYEtn3HGzeabolYq18619A",
+            authDomain: "b-bot-website.firebaseapp.com",
+            databaseURL: "https://b-bot-website-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "b-bot-website",
+            storageBucket: "b-bot-website.appspot.com",
+            messagingSenderId: "508997126688",
+            appId: "1:508997126688:web:55fb45728235763e808a45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const messageRef = ref(db, 'botMessage');
+
+        onValue(messageRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                
+                if (data.status === "thinking") {
+                    // 顯示讀取中
+                    document.body.className = "loading-mode";
+                    document.body.innerHTML = `
+                        <div class="card">
+                            <h1>🎮 Gemini 正在拼命寫遊戲中...</h1>
+                            <p>正在隨機選取經典遊戲與美術風格，請等候 5-10 秒...</p>
+                        </div>
+                    `;
+                } 
+                else if (data.html_code && data.status === "done") {
+                    // 🌟 核心修正：利用 range.createContextualFragment 迫使瀏覽器強行執行塞進來的全部 JavaScript！
+                    document.body.className = ""; 
+                    document.body.innerHTML = ""; // 徹底清空原本的等待畫面
+                    
+                    const range = document.createRange();
+                    range.selectNode(document.body);
+                    const documentFragment = range.createContextualFragment(data.html_code);
+                    
+                    document.body.appendChild(documentFragment);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
